@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model support_tickets {
+  ticket_id   Int       @id @default(autoincrement())
+  user_id     Int
+  admin_id    Int?                                       // Filled when an admin replies
+  subject     String
+  message     String
+  status      String   @default("ACTIVE")                // ACTIVE / CLOSED
+  priority    Int      @default(0)                        // 0 = Normal, 1 = Purchased
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  user        users     @relation(fields: [user_id], references: [user_id])
+  admin       admin_users? @relation(fields: [admin_id], references: [admin_id])
+  messages    chat_messages[]
+
+  @@map("support_tickets")
+}
+
+model chat_messages {
+  chat_id      Int       @id @default(autoincrement())
+  ticket_id    Int
+  sender_id    Int
+  sender_type  String                                     // ADMIN / USER
+  admin_id     Int?                                       // Optional: for admin messages
+  message_text String
+  attachments  String?                                    // Image URL(s)
+  send_datetime DateTime @default(now())
+  read_status  String   @default("SENT")                  // SENT / READ
+
+  ticket       support_tickets @relation(fields: [ticket_id], references: [ticket_id])
+  admin        admin_users?    @relation(fields: [admin_id], references: [admin_id])
+
+  @@map("chat_messages")
+}
+
+model users {
+  user_id   Int              @id @default(autoincrement())
+  username  String
+  email     String           @unique
+  password  String
+  owned     String?          // Purchased properties
+  tickets   support_tickets[]
+}
+
+model admin_users {
+  admin_id  Int              @id @default(autoincrement())
+  username  String
+  email     String           @unique
+  password  String
+  tickets   support_tickets[]
+  messages  chat_messages[]
+}
