@@ -37,7 +37,7 @@ model chat_messages {
   ticket_id    Int
   sender_id    Int
   sender_type  String                                     // ADMIN / USER
-  admin_id     Int?                                       // Optional: for admin messages
+  admin_id     Int?                                       // Optional: for admin messages //oof
   message_text String
   attachments  String?                                    // Image URL(s)
   send_datetime DateTime @default(now())
