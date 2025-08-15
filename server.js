@@ -102,6 +102,26 @@ app.patch("/api/tickets/:ticketId/join", async (req, res) => {
   }
 });
 
+// Close ticket
+app.patch("/api/tickets/:ticketId/close", async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+
+    // Update the ticket status to CLOSED
+    const ticket = await prisma.support_tickets.update({
+      where: { ticket_id: Number(ticketId) },
+      data: { status: "CLOSED" },
+    });
+
+    // Notify all clients in the room that the ticket was closed
+    io.to(ROOM(ticketId)).emit("ticket_closed", { ticketId });
+
+    res.json({ success: true, ticket });
+  } catch (err) {
+    console.error("Close ticket error:", err);
+    res.status(500).json({ success: false, error: "Failed to close ticket" });
+  }
+});
 
 // ============================
 // WebSocket Events
