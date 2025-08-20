@@ -49,6 +49,7 @@ model chat_messages {
   @@map("chat_messages")
 }
 
+//the users and admin_users were created for testing
 model users {
   user_id   Int              @id @default(autoincrement())
   username  String
